@@ -30,7 +30,7 @@ fun ContentScreen(memoId: Int) {
     Box(Modifier.fillMaxSize()) {
         val scroll = rememberScrollState(0)
         Body(scroll)
-        Title(memo.text, scroll.value)
+        Title(memo.text) { scroll.value }
     }
 }
 
@@ -68,7 +68,13 @@ private fun Body(
 }
 
 @Composable
-private fun Title(memoText: String, scroll: Int) {
+private fun Title(memoText: String, scrollProvider: () -> Int) {
+    // scroll이 바뀔때 마다 Recomposition되고 있다.
+    // scroll: Int 을 람다로 변경
+    // before : scroll: Int
+    // After : scrollProvider: () -> Int
+    // why? Int를 넣으면 참조가 달라지지만 람다를 넣으면 참조가 같아서 Recomposition이 안일어남
+
     val maxOffset = with(LocalDensity.current) { MaxTitleOffset.toPx() }
     val minOffset = with(LocalDensity.current) { MinTitleOffset.toPx() }
 
@@ -76,7 +82,7 @@ private fun Title(memoText: String, scroll: Int) {
         modifier = Modifier
             .heightIn(min = MaxTitleOffset)
             .offset {
-                val offset = (maxOffset - scroll).coerceAtLeast(minOffset)
+                val offset = (maxOffset - scrollProvider()).coerceAtLeast(minOffset)
                 IntOffset(x = 0, y = offset.toInt())
             }
             .fillMaxWidth()
